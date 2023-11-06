@@ -1,0 +1,21 @@
+
+# Fichier Dockerfile
+FROM prestashop/prestashop:1.7.8.0
+
+# Copie des fichiers de PrestaShop
+COPY . /var/www/html/
+
+# Configuration d'Apache pour utiliser PrestaShop
+RUN a2enmod rewrite
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Exposition du port 80
+EXPOSE 80
+
+# Démarrage du service Apache2
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
+
+
+
+

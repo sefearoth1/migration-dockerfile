@@ -1,0 +1,43 @@
+# Fichier Dockerfile
+FROM prestashop/prestashop:1.7.8.0
+
+# Connexion au réseau Docker PrestaShop
+#ENV DOCKER_NETWORK=prestashop
+
+# Connexion à la base de données
+# Nous n'avons pas besoin de l'installation de mariadb-client ici car votre base de données est locale
+
+# Copie des fichiers de PrestaShop
+run  rm -rf /var/www/html/*
+
+# Configuration d'Apache pour utiliser PrestaShop
+RUN a2enmod rewrite
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Exposition du port 80
+EXPOSE 80
+
+# Configuration de la base de données
+ENV MYSQL_HOST=mysql_container
+ENV MYSQL_DATABASE=db_prestashop
+ENV MYSQL_USER=presta_user
+ENV MYSQL_PASSWORD=root
+
+# Exportation de la base de données lors de la création de l'image
+# Utilisez l'instruction RUN pour effectuer la sauvegarde lors de la création de l'image
+#RUN mysqldump -u root -p$db_password $MYSQL_DATABASE > /var/www/html/db_prestashop.sql
+
+# Copier le script d'initialisation dans le conteneur
+COPY init-db.sh /usr/local/bin/
+
+# Rendre le script d'initialisation exécutable
+RUN chmod +x /usr/local/bin/init-db.sh
+
+# Exécuter le script d'initialisation au démarrage du conteneur
+CMD ["init-db.sh"]
+
+# Démarrage du service Apache2
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
+# Démarrage du service mysql
+RUN mysqld &
